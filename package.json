@@ -1,0 +1,30 @@
+{
+  "name": "telnet-rxjs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "start": "npm run build && node dist/main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@gitlab.com/HerrEvilkitten/telnet-rxjs.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://gitlab.com/HerrEvilkitten/telnet-rxjs/issues"
+  },
+  "homepage": "https://gitlab.com/HerrEvilkitten/telnet-rxjs#README",
+  "devDependencies": {
+    "@types/node": "^7.0.14",
+    "codelyzer": "^3.0.1",
+    "tslint": "^5.1.0",
+    "typescript": "^2.3.2"
+  },
+  "dependencies": {
+    "rxjs": "^5.3.0"
+  }
+}
