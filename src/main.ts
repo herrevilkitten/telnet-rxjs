@@ -1,5 +1,6 @@
-import { TelnetClient } from './telnet-client';
-import { ConnectedEvent, DataEvent } from './telnet-events';
+import { Telnet } from './telnet-rxjs';
 
-let client = new TelnetClient();
-client.events.subscribe(console.log);
+const client = Telnet.connect('telnets://url', { rejectUnauthorized: false });
+client.data.subscribe(console.log);
+client.filter(event => event instanceof Telnet.Event.Connected).subscribe(event => client.sendln('WHO'));
+client.connect();
