@@ -13,10 +13,41 @@ import 'rxjs/add/observable/of';
 
 import { TelnetEvent, StateChangeEvent, DataEvent, ConnectedEvent, ConnectingEvent } from './telnet-events';
 
+export namespace TelnetCommands {
+  export const SE = 240;
+  export const NOP = 241;
+  export const DM = 242;
+  export const BRK = 243;
+  export const IP = 244;
+  export const AO = 245;
+  export const AYT = 246;
+  export const EC = 247;
+  export const EL = 248;
+  export const GA = 249;
+  export const SB = 250;
+
+  export const WILL = 251;
+  export const WONT = 252;
+  export const DO = 253;
+  export const DONT = 254;
+  export const IAC = 255;
+
+  export const ECHO = 1;
+  export const SUPPRESS_GO_AHEAD = 3;
+  export const STATUS = 5;
+  export const TIMING_MARK = 6;
+  export const TERMINAL_TYPE = 24;
+  export const WINDOW_SIZE = 31;
+  export const TERMINAL_SPEED = 32;
+  export const REMOTE_FLOW_CONTROL = 33;
+  export const LINEMODE = 34;
+  export const ENVIRONMENT_VARIABLES = 36;
+}
+
 export class TelnetClient {
   private eventsObservable: ReplaySubject<TelnetEvent>;
   private outputObservable: ReplaySubject<string>;
-  private connection: tls.ClearTextStream | net.Socket;
+  private connection: tls.ClearTextStream | net.Socket | null;
   private hostUrl: url.Url;
 
   constructor() {
@@ -35,7 +66,7 @@ export class TelnetClient {
     return this.eventsObservable.filter(event => event instanceof StateChangeEvent);
   }
 
-  get input(): Observable<DataEvent> {
+  get data(): Observable<DataEvent> {
     return this.eventsObservable.filter(event => event instanceof DataEvent)
   }
 
@@ -70,12 +101,23 @@ export class TelnetClient {
       connection = this.connectNoTls(hostUrl);
     }
 
+    this.connection = connection;
     connection.on('error', (error) => {
       this.eventsObservable.error(error);
     });
 
     connection.on('data', (data) => {
-      this.eventsObservable.next(new DataEvent(data.toString()));
+      const buffer = Buffer.alloc(data.length);
+      let copied = 0;
+      for (let i = 0; i < data.length; ++i) {
+        if (data[i] === 255) {
+          i += 2;
+        } else {
+          buffer[copied++] = data[i];
+        }
+      }
+
+      this.eventsObservable.next(new DataEvent(buffer.toString('utf8', 0, copied)));
     });
 
     return Observable.of(true);
@@ -99,3 +141,4 @@ export class TelnetClient {
     });
   }
 }
+
