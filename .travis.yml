@@ -1,0 +1,15 @@
+language: node_js
+node_js:
+  - "7.9"
+
+branches:
+  only:
+    - master
+
+script:
+  - npm run build
+
+notifications:
+  email:
+    on_failure: change
+    on_success: change
