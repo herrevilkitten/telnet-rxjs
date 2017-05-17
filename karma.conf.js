@@ -1,3 +1,7 @@
+if (process.env.TRAVIS) {
+  configuration.browsers = ['Chrome_travis_ci'];
+}
+
 module.exports = function (config) {
   config.set({
     frameworks: ["jasmine", "karma-typescript"],
@@ -16,6 +20,12 @@ module.exports = function (config) {
       tsconfig: "./tsconfig.spec.json"
     },
     reporters: ["progress", "karma-typescript"],
-    browsers: ["Chrome"]
+    browsers: ["Chrome"],
+    customLaunchers: {
+      Chrome_travis_ci: {
+        base: 'Chrome',
+        flags: ['--no-sandbox']
+      }
+    }
   });
 };
