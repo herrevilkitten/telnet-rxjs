@@ -1,9 +1,5 @@
-if (process.env.TRAVIS) {
-  configuration.browsers = ['Chrome_travis_ci'];
-}
-
 module.exports = function (config) {
-  config.set({
+  var configuration = {
     frameworks: ["jasmine", "karma-typescript"],
     files: [{
         pattern: "src/**/*.ts"
@@ -27,5 +23,11 @@ module.exports = function (config) {
         flags: ['--no-sandbox']
       }
     }
-  });
+  };
+
+  if (process.env.TRAVIS) {
+    configuration.browsers = ['Chrome_travis_ci'];
+  }
+
+  config.set(configuration);
 };
