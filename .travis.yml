@@ -7,7 +7,9 @@ branches:
     - master
 
 script:
-  - npm run build
+  - npm run validate
+  - npm run documentation
+
 
 notifications:
   email:

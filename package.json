@@ -2,29 +2,41 @@
   "name": "telnet-rxjs",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/telnet-rxjs.js",
+  "types": "dist/telnet-rxjs.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "karma start ./karma.conf.js",
     "build": "tsc -d",
-    "start": "npm run build && node dist/main.js"
+    "lint": "tslint -p tsconfig.json",
+    "validate": "npm run test -- --single-run && npm run lint && npm run build",
+    "documentation": "typedoc --out doc"
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@gitlab.com/HerrEvilkitten/telnet-rxjs.git"
+    "url": "git@github.com:herrevilkitten/telnet-rxjs.git"
   },
-  "author": "",
-  "license": "ISC",
+  "author": {
+    "name": "Eric Kidder"
+  },
+  "license": "MIT",
   "bugs": {
-    "url": "https://gitlab.com/HerrEvilkitten/telnet-rxjs/issues"
+    "url": "https://github.com/herrevilkitten/telnet-rxjs/issues"
   },
-  "homepage": "https://gitlab.com/HerrEvilkitten/telnet-rxjs#README",
+  "homepage": "https://github.com/herrevilkitten/telnet-rxjs",
   "devDependencies": {
-    "@types/node": "^7.0.14",
-    "codelyzer": "^3.0.1",
-    "tslint": "^5.1.0",
+    "@types/jasmine": "^2.5.47",
+    "@types/node": "^7.0.18",
+    "jasmine-core": "^2.6.1",
+    "karma": "^1.7.0",
+    "karma-chrome-launcher": "^2.1.1",
+    "karma-jasmine": "^1.1.0",
+    "karma-phantomjs-launcher": "^1.0.4",
+    "karma-typescript": "^3.0.1",
+    "tslint": "^5.2.0",
+    "typedoc": "^0.7.0",
     "typescript": "^2.3.2"
   },
   "dependencies": {
-    "rxjs": "^5.3.0"
+    "rxjs": "^5.4.0"
   }
 }

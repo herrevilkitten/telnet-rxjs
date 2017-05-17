@@ -1,28 +1,30 @@
-import * as net from 'net';
-import * as tls from 'tls';
 import * as http from 'http';
 import * as https from 'https';
+import * as net from 'net';
+import * as tls from 'tls';
 import * as url from 'url';
 
-import { ReplaySubject } from 'rxjs/ReplaySubject';
 import { Observable } from 'rxjs/Observable';
+import { ReplaySubject } from 'rxjs/ReplaySubject';
 import { Subject } from 'rxjs/Subject';
 
+import 'rxjs/add/observable/defer';
 import 'rxjs/add/observable/empty';
 import 'rxjs/add/observable/of';
-import 'rxjs/add/observable/defer';
+import 'rxjs/add/operator/concat';
+import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/filter';
-import 'rxjs/add/operator/do'
-import 'rxjs/add/operator/concat'
-import 'rxjs/add/operator/map'
+import 'rxjs/add/operator/map';
 
 export class Telnet {
-  static connect(hostUrl: string, options: any = {}) {
-    return new Telnet.Connection(url.parse(hostUrl), options)
+  public static client(hostUrl: string, options: any = {}) {
+    return new Telnet.Connection(url.parse(hostUrl), options);
   }
 }
 
-export module Telnet {
+export namespace Telnet {
+  export const EOL = '\r\n';
+
   export namespace Commands {
     export const SE = 240;
     export const NOP = 241;
@@ -55,7 +57,7 @@ export module Telnet {
   }
 
   export class Event {
-    timestamp: Date;
+    public timestamp: Date;
 
     constructor() {
       this.timestamp = new Date();
@@ -74,7 +76,7 @@ export module Telnet {
     export class Disconnected extends ConnectionChange { }
 
     export class Data extends Telnet.Event {
-      data: string;
+      public data: string;
 
       constructor(data: string) {
         super();
@@ -84,7 +86,14 @@ export module Telnet {
 
     export class Timer extends Telnet.Event { }
 
-    export class Command extends Telnet.Event { }
+    export class Command extends Telnet.Event {
+      public command: number[];
+
+      constructor(command: number[]) {
+        super();
+        this.command = command;
+      }
+    }
   }
 
   export class Connection extends ReplaySubject<Telnet.Event> {
@@ -95,10 +104,16 @@ export module Telnet {
     }
 
     get data(): Observable<string> {
-      return this.filter(event => event instanceof Telnet.Event.Data).map((event: Telnet.Event.Data) => event.data);
+      return this.filter((event) => event instanceof Telnet.Event.Data)
+        .map((event: Telnet.Event.Data) => event.data);
     }
 
-    send(data: string) {
+    get commands(): Observable<number[]> {
+      return this.filter((event) => event instanceof Telnet.Event.Command)
+        .map((event: Telnet.Event.Command) => event.command);
+    }
+
+    public send(data: string) {
       if (!this.connection) {
         return;
       }
@@ -106,12 +121,12 @@ export module Telnet {
       this.connection.write(data);
     }
 
-    sendln(data: string) {
+    public sendln(data: string) {
       this.send(data);
-      this.send('\r\n');
+      this.send(Telnet.EOL);
     }
 
-    connect(): Observable<boolean> {
+    public connect(): Observable<boolean> {
       let connection;
 
       this.next(new Telnet.Event.Connecting());
@@ -126,12 +141,12 @@ export module Telnet {
         this.error(error);
       });
 
-      connection.on('data', (data) => {
+      connection.on('data', (data: number[]) => {
         const buffer = Buffer.alloc(data.length);
         let copied = 0;
         for (let i = 0; i < data.length; ++i) {
           if (data[i] === Telnet.Commands.IAC) {
-            i += 2;
+            i = this.handleTelnetCommand(data, i);
           } else {
             buffer[copied++] = data[i];
           }
@@ -141,6 +156,21 @@ export module Telnet {
       });
 
       return Observable.of(true);
+    }
+
+    private handleTelnetCommand(data: any[], position: number) {
+      const telnetCommand: number[] = [Telnet.Commands.IAC];
+      position++;
+
+      if (data[position] === Telnet.Commands.SB) {
+        // TODO: Sub negotiation begins
+      } else {
+        telnetCommand.push(data[position]++);
+        telnetCommand.push(data[position]++);
+      }
+      this.next(new Telnet.Event.Command(telnetCommand));
+
+      return position;
     }
 
     private connectNoTls(hostUrl: url.Url) {
