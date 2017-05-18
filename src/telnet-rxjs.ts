@@ -18,7 +18,13 @@ import 'rxjs/add/operator/map';
 
 export class Telnet {
   public static client(hostUrl: string, options: any = {}) {
-    return new Telnet.Connection(url.parse(hostUrl), options);
+    let client: Telnet.Connection;
+
+    if (!options.clientClass) {
+      options.clientClass = Telnet.Connection;
+    }
+    client = new options.clientClass(url.parse(hostUrl), options);
+    return client;
   }
 }
 
@@ -103,11 +109,17 @@ export namespace Telnet {
       super();
     }
 
+    /**
+     * An observable that tracks the data being sent to the client
+     */
     get data(): Observable<string> {
       return this.filter((event) => event instanceof Telnet.Event.Data)
         .map((event: Telnet.Event.Data) => event.data);
     }
 
+    /**
+     * An observable that tracks any telnet commands sent to the client
+     */
     get commands(): Observable<number[]> {
       return this.filter((event) => event instanceof Telnet.Event.Command)
         .map((event: Telnet.Event.Command) => event.command);
