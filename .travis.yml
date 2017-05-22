@@ -21,6 +21,13 @@ script:
   - npm run validate
   - npm run documentation
 
+deploy:
+  provider: pages
+  skip_cleanup: true
+  github_token: $GITHUB_TOKEN
+  local_dir: doc
+  on:
+    branch: master
 
 notifications:
   email:

@@ -8,11 +8,7 @@ import { Observable } from 'rxjs/Observable';
 import { ReplaySubject } from 'rxjs/ReplaySubject';
 import { Subject } from 'rxjs/Subject';
 
-import 'rxjs/add/observable/defer';
-import 'rxjs/add/observable/empty';
 import 'rxjs/add/observable/of';
-import 'rxjs/add/operator/concat';
-import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/filter';
 import 'rxjs/add/operator/map';
 
@@ -125,6 +121,11 @@ export namespace Telnet {
         .map((event: Telnet.Event.Command) => event.command);
     }
 
+    /**
+     * Sends the given string to the server.
+     *
+     * @param data the string to send to the server
+     */
     public send(data: string) {
       if (!this.connection) {
         return;
@@ -133,19 +134,32 @@ export namespace Telnet {
       this.connection.write(data);
     }
 
+    /**
+     * Sends the given string to the server and then sends an EOL ("\r\n").
+     *
+     * @param data the string to send to the server
+     */
     public sendln(data: string) {
       this.send(data);
       this.send(Telnet.EOL);
     }
 
+    /**
+     * Connects to the server URI that was passed in with the constructor
+     */
     public connect(): Observable<boolean> {
       let connection;
 
       this.next(new Telnet.Event.Connecting());
-      if (this.hostUrl.protocol === 'telnets:') {
-        connection = this.connectTls(this.hostUrl);
-      } else {
-        connection = this.connectNoTls(this.hostUrl);
+      switch (this.hostUrl.protocol) {
+        case 'telnet:':
+          connection = this.connectNoTls(this.hostUrl);
+          break;
+        case 'telnets:':
+          connection = this.connectTls(this.hostUrl);
+          break;
+        default:
+          return Observable.throw(this.hostUrl.protocol + ' is not a supported protocol');
       }
 
       this.connection = connection;
@@ -170,12 +184,28 @@ export namespace Telnet {
       return Observable.of(true);
     }
 
-    private handleTelnetCommand(data: any[], position: number) {
+    /**
+     * Processes in-band telnet commands.  Please see the relevant RFCs for more information.
+     * Commands are published to the connetion observable as {@link Telnet.Event.Command} and
+     * can be responded to by filtering for this information.
+     *
+     * @param data the array of data for the current input
+     * @param position the current position of the data cursor
+     * @returns the new position of the data cursor
+     */
+    private handleTelnetCommand(data: number[], position: number) {
       const telnetCommand: number[] = [Telnet.Commands.IAC];
+
+      // Used to store the new position of the buffer cursor
       position++;
 
       if (data[position] === Telnet.Commands.SB) {
-        // TODO: Sub negotiation begins
+        while (position < data.length) {
+          telnetCommand.push(data[position++]);
+          if (data[position] === Telnet.Commands.SE) {
+            break;
+          }
+        }
       } else {
         telnetCommand.push(data[position]++);
         telnetCommand.push(data[position]++);
