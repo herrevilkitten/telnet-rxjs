@@ -9,7 +9,7 @@
     "build": "tsc -d",
     "lint": "tslint -p tsconfig.json",
     "validate": "npm run test -- --single-run && npm run lint && npm run build",
-    "documentation": "typedoc --out doc"
+    "documentation": "typedoc --out docs"
   },
   "repository": {
     "type": "git",
