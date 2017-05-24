@@ -8,9 +8,6 @@ branches:
   only:
     - master
 
-before_install:  
-  -  dist
-
 script:
   - npm run validate
   - npm run documentation
