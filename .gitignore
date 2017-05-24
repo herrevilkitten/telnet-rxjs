@@ -40,8 +40,8 @@ dist
 doc
 docs
 
-src/*.js
-src/*.js.map
+src/**/*.js
+src/**/*.js.map
 
-test/*.js
-test/*.js.map
+test/**/*.js
+test/**/*.js.map
