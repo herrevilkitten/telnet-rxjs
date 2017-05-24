@@ -32,7 +32,7 @@ client.connect();
 
 ## LINKS
 
-[API Documentation](herrevilkitten.github.io/telnet-rxjs/)
+[API Documentation](https://herrevilkitten.github.io/telnet-rxjs/)
 
 ## AUTHOR
 
