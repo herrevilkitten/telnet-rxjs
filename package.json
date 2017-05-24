@@ -5,10 +5,10 @@
   "main": "dist/telnet-rxjs.js",
   "types": "dist/telnet-rxjs.d.ts",
   "scripts": {
-    "test": "karma start ./karma.conf.js",
+    "test": "mocha --require co-mocha",
     "build": "tsc -d",
     "lint": "tslint -p tsconfig.json",
-    "validate": "npm run test -- --single-run && npm run lint && npm run build",
+    "validate": "npm run test && npm run lint && npm run build",
     "documentation": "typedoc --out docs"
   },
   "repository": {
@@ -24,14 +24,16 @@
   },
   "homepage": "https://github.com/herrevilkitten/telnet-rxjs",
   "devDependencies": {
-    "@types/jasmine": "^2.5.47",
+    "@types/chai": "^3.5.2",
+    "@types/mocha": "^2.2.41",
     "@types/node": "^7.0.18",
-    "jasmine-core": "^2.6.1",
-    "karma": "^1.7.0",
-    "karma-chrome-launcher": "^2.1.1",
-    "karma-jasmine": "^1.1.0",
-    "karma-phantomjs-launcher": "^1.0.4",
-    "karma-typescript": "^3.0.1",
+    "@types/sinon": "^2.2.2",
+    "@types/sinon-chai": "^2.7.27",
+    "chai": "^3.5.0",
+    "co-mocha": "^1.2.0",
+    "mocha": "^3.4.2",
+    "sinon": "^2.3.1",
+    "sinon-chai": "^2.10.0",
     "tslint": "^5.2.0",
     "typedoc": "^0.7.1",
     "typescript": "^2.3.2"

@@ -9,6 +9,7 @@ import { ReplaySubject } from 'rxjs/ReplaySubject';
 import { Subject } from 'rxjs/Subject';
 
 import 'rxjs/add/observable/of';
+import 'rxjs/add/observable/throw';
 import 'rxjs/add/operator/filter';
 import 'rxjs/add/operator/map';
 
@@ -19,6 +20,12 @@ export class Telnet {
     if (!options.clientClass) {
       options.clientClass = Telnet.Connection;
     }
+
+    const parts = hostUrl.split(':');
+    if (parts.length === 2) {
+      hostUrl = `telnet:${parts[0]}:${parts[1]}`;
+    }
+
     client = new options.clientClass(url.parse(hostUrl), options);
     return client;
   }
@@ -26,6 +33,7 @@ export class Telnet {
 
 export namespace Telnet {
   export const EOL = '\r\n';
+  export const DEFAULT_ENCODING = 'utf8';
 
   export namespace Commands {
     export const SE = 240;
@@ -86,8 +94,6 @@ export namespace Telnet {
       }
     }
 
-    export class Timer extends Telnet.Event { }
-
     export class Command extends Telnet.Event {
       public command: number[];
 
@@ -146,12 +152,20 @@ export namespace Telnet {
 
     /**
      * Connects to the server URI that was passed in with the constructor
+     * @throws an error if the client cannot connect
      */
-    public connect(): Observable<boolean> {
+    public connect() {
       let connection;
 
       this.next(new Telnet.Event.Connecting());
-      switch (this.hostUrl.protocol) {
+      const protocol = this.hostUrl.protocol || 'telnet:';
+      console.dir(this.hostUrl);
+
+      if (!this.hostUrl.port) {
+        throw new Error('A port is required to connect to.');
+      }
+
+      switch (protocol) {
         case 'telnet:':
           connection = this.connectNoTls(this.hostUrl);
           break;
@@ -159,7 +173,7 @@ export namespace Telnet {
           connection = this.connectTls(this.hostUrl);
           break;
         default:
-          return Observable.throw(this.hostUrl.protocol + ' is not a supported protocol');
+          throw new Error(this.hostUrl.protocol + ' is not a supported protocol');
       }
 
       this.connection = connection;
@@ -170,18 +184,28 @@ export namespace Telnet {
       connection.on('data', (data: number[]) => {
         const buffer = Buffer.alloc(data.length);
         let copied = 0;
-        for (let i = 0; i < data.length; ++i) {
-          if (data[i] === Telnet.Commands.IAC) {
-            i = this.handleTelnetCommand(data, i);
+        for (let cursor = 0; cursor < data.length; ++cursor) {
+          if (data[cursor] === Telnet.Commands.IAC) {
+            cursor = this.handleTelnetCommand(data, cursor);
           } else {
-            buffer[copied++] = data[i];
+            buffer[copied++] = data[cursor];
           }
         }
 
-        this.next(new Telnet.Event.Data(buffer.toString('utf8', 0, copied)));
+        this.next(new Telnet.Event.Data(buffer.toString(Telnet.DEFAULT_ENCODING, 0, copied)));
       });
+    }
 
-      return Observable.of(true);
+    /**
+     * Close the telnet connection
+     */
+    public disconnect() {
+      this.next(new Telnet.Event.Disconnecting());
+      if (this.connection) {
+        this.connection.end();
+        this.connection = null;
+      }
+      this.next(new Telnet.Event.Disconnected());
     }
 
     /**

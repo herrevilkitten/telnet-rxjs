@@ -1,11 +1,3 @@
-# telnet-rxjs
-
-A node.js telnet library that wraps the sockets with RxJS observables.
-
-[![Build Status](https://travis-ci.org/herrevilkitten/telnet-rxjs.svg?branch=master)](https://travis-ci.org/herrevilkitten/telnet-rxjs)
-
-## SYNPOSIS
-```
 import { Telnet } from './telnet-rxjs';
 
 const client = Telnet.client('www.yahoo.com:80');
@@ -27,13 +19,3 @@ client.data
     });
 
 client.connect();
-```
-## DESCRIPTION
-
-## LINKS
-
-[API Documentation](herrevilkitten.github.io/telnet-rxjs/)
-
-## AUTHOR
-
-Eric Kidder

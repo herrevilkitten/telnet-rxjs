@@ -6,6 +6,7 @@
       true,
       "single"
     ],
-    "max-classes-per-file": [false, 0]
+    "max-classes-per-file": [false, 0],
+    "no-console": [false]
   }
 }
