@@ -14,12 +14,18 @@ script:
   - touch docs/.nojekyll
 
 deploy:
-  provider: pages
-  skip_cleanup: true
-  github_token: $GITHUB_TOKEN
-  local_dir: docs
-  on:
-    branch: master
+  - provider: pages
+    skip_cleanup: true
+    github_token: $GITHUB_TOKEN
+    local_dir: docs
+    on:
+      branch: master
+  - provider: npm
+    skip_cleanup: true
+    email: eric@kidderberg.us
+    api_key: $NPM_API_KEY
+    on:
+      tags: true
 
 notifications:
   email:
