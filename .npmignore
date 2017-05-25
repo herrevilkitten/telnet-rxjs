@@ -1,0 +1,9 @@
+coverage
+doc
+test
+
+.travis.yml
+tsconfig.json
+tsconfig.spec.json
+tslint.json
+yarn.lock
