@@ -61,7 +61,30 @@ The factory method returns a `Telnet.Connection` object, which is a subclass of 
 
 ### Listen for Events and Data
 
-As an observable, the telnet connection can be subscribed to in order to receive data from the server.  The default subscription publishes `Telnet.Event` objects
+As an observable, the telnet connection can be subscribed to in order to receive data from the server.  The default subscription publishes `Telnet.Event` objects.
+
+#### Telnet Events
+All events have a `timestamp` field that is a `Date` object.
+
+`Telnet.Event.Connecting`
+Published when the client begins connecting to the server.
+
+`Telnet.Event.Connected`
+Published after a connection to the server has been established.
+
+`Telnet.Event.Disconnecting`
+Published when the client begins to disconnect from the server.
+
+`Telnet.Event.Disconnected`
+Published when the client has closed its connection to the server.
+
+`Telnet.Event.Data`
+Published when data is received from the server.  The event has a `data` field that is a string.
+
+`Telnet.Event.Command`
+Published when a [telnet command](http://www.faqs.org/rfcs/rfc854.html) has been received from the server.  The event has a `command` field that is a string of numbers.
+
+Additional accessors are provided that act as filters for the `Data` and `Command` events.  The `data` accessor publishes each string of data.  The `commands` accessor publishes each array of numbers.
 
 ### Connect
 
