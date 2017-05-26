@@ -119,8 +119,20 @@ client.filter((event) => event instanceof Telnet.Event.Command).subscribe((event
 });
 ```
 
+#### Listen for Errors
+```
+client.subscribe(
+  (event) => {
+    console.log('Received event:', event);
+  },
+  (error) => {
+    console.error('An error occurred:', error);
+  }
+);
+```
+
 ### Connect
-The `connect` method must be called before any connections will be opened.
+The `connect` method must be called before any connections will be opened.  Configuration errors, such as missing port numbers, will cause an exception to be thrown.  Other errors will be reported on the error channel of the client observable.
 
 ## LINKS
 

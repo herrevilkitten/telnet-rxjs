@@ -159,7 +159,6 @@ export namespace Telnet {
 
       this.next(new Telnet.Event.Connecting());
       const protocol = this.hostUrl.protocol || 'telnet:';
-      console.dir(this.hostUrl);
 
       if (!this.hostUrl.port) {
         throw new Error('A port is required to connect to.');
@@ -193,6 +192,13 @@ export namespace Telnet {
         }
 
         this.next(new Telnet.Event.Data(buffer.toString(Telnet.DEFAULT_ENCODING, 0, copied)));
+      });
+
+      /*
+       * Close the connection if the server closes it
+       */
+      connection.on('end', () => {
+        this.disconnect();
       });
     }
 
