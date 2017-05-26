@@ -105,6 +105,20 @@ client.filter((event) => event instanceof Telnet.Event.Data).subscribe((event) =
   console.log('Received data:', event.data);
 });
 ```
+
+#### Listen for Commands
+```
+client.commands.subscribe((command) => {
+  console.log('Received command:', command);
+});
+```
+or
+```
+client.filter((event) => event instanceof Telnet.Event.Command).subscribe((event) => {
+  console.log('Received command:', event.command);
+});
+```
+
 ### Connect
 The `connect` method must be called before any connections will be opened.
 
