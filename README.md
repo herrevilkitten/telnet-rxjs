@@ -4,16 +4,6 @@ A node.js telnet library that wraps the sockets with RxJS observables.
 
 [![Build Status](https://travis-ci.org/herrevilkitten/telnet-rxjs.svg?branch=master)](https://travis-ci.org/herrevilkitten/telnet-rxjs)
 
-## INSTALLATION
-
-```
-npm install telnet-rxjs
-```
-
-### Dependencies
-
-[RxJS](https://www.npmjs.com/package/rxjs)
-
 ## SYNPOSIS
 ```
 import { Telnet } from './telnet-rxjs';
@@ -38,6 +28,16 @@ client.data
 
 client.connect();
 ```
+## INSTALLATION
+
+```
+npm install telnet-rxjs
+```
+
+### Dependencies
+
+[RxJS](https://www.npmjs.com/package/rxjs)
+
 ## DESCRIPTION
 
 `telnet-rxjs` is a simple wrapper around a telnet client, using [RxJS](https://github.com/ReactiveX/rxjs) for handling data received from the server.
@@ -87,6 +87,7 @@ Published when a [telnet command](http://www.faqs.org/rfcs/rfc854.html) has been
 Additional accessors are provided that act as filters for the `Data` and `Command` events.  The `data` accessor publishes each string of data.  The `commands` accessor publishes each array of numbers.
 
 #### Listen for All Events
+
 ```
 client.subscribe((event) => {
   console.log('Received event:', event);
@@ -94,6 +95,7 @@ client.subscribe((event) => {
 ```
 
 #### Listen for Data
+
 ```
 client.data.subscribe((data) => {
   console.log('Received data:', data);
@@ -107,6 +109,7 @@ client.filter((event) => event instanceof Telnet.Event.Data).subscribe((event) =
 ```
 
 #### Listen for Commands
+
 ```
 client.commands.subscribe((command) => {
   console.log('Received command:', command);
@@ -120,6 +123,7 @@ client.filter((event) => event instanceof Telnet.Event.Command).subscribe((event
 ```
 
 #### Listen for Errors
+
 ```
 client.subscribe(
   (event) => {
