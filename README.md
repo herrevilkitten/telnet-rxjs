@@ -23,18 +23,18 @@ const client = Telnet.client('www.yahoo.com:80');
 let connected = false;
 
 client.filter((event) => event instanceof Telnet.Event.Connected)
-    .subscribe((event) => {
-        connected = true;
-        client.sendln('GET /');
-    });
+  .subscribe((event) => {
+    connected = true;
+    client.sendln('GET /');
+  });
 
 client.data
-    .subscribe((data) => {
-        if (!connected) {
-            return;
-        }
-        console.log(data);
-    });
+  .subscribe((data) => {
+    if (!connected) {
+      return;
+    }
+    console.log(data);
+  });
 
 client.connect();
 ```
@@ -86,13 +86,35 @@ Published when a [telnet command](http://www.faqs.org/rfcs/rfc854.html) has been
 
 Additional accessors are provided that act as filters for the `Data` and `Command` events.  The `data` accessor publishes each string of data.  The `commands` accessor publishes each array of numbers.
 
+#### Listen for All Events
+```
+client.subscribe((event) => {
+  console.log('Received event:', event);
+});
+```
+
+#### Listen for Data
+```
+client.data.subscribe((data) => {
+  console.log('Received data:', data);
+});
+```
+or
+```
+client.filter((event) => event instanceof Telnet.Event.Data).subscribe((event) => {
+  console.log('Received data:', event.data);
+});
+```
 ### Connect
+The `connect` method must be called before any connections will be opened.
 
 ## LINKS
 
 [Generated API Documentation](https://herrevilkitten.github.io/telnet-rxjs/)
 
 [NPM Package](https://www.npmjs.com/package/telnet-rxjs)
+
+[Telnet RFC](http://www.faqs.org/rfcs/rfc854.html)
 
 ## AUTHOR
 
