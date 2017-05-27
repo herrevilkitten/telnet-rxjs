@@ -17,6 +17,10 @@ export class Telnet {
   public static client(hostUrl: string, options: any = {}) {
     let client: Telnet.Connection;
 
+    if (!hostUrl) {
+      throw new Error('No host URL given');
+    }
+
     if (!options.clientClass) {
       options.clientClass = Telnet.Connection;
     }
