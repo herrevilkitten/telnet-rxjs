@@ -6,8 +6,8 @@
     "telnet",
     "rxjs"
   ],
-  "main": "dist/telnet-rxjs.js",
-  "types": "dist/telnet-rxjs.d.ts",
+  "main": "dist/telnet.js",
+  "types": "dist/telnet.d.ts",
   "scripts": {
     "clean": "rimraf dist src/**/*.js test/**/*.js",
     "test": "tsc -p ./tsconfig.spec.json && mocha --require co-mocha",
