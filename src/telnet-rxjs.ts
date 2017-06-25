@@ -33,6 +33,32 @@ export class Telnet {
     client = new options.clientClass(url.parse(hostUrl), options);
     return client;
   }
+
+  public static server(hostUrl: string | number, options: any = {}) {
+    let server: Telnet.Server;
+
+    if (!hostUrl) {
+      throw new Error('No host URL given');
+    }
+
+    if (typeof hostUrl === 'number') {
+      hostUrl = `telnet:0.0.0.0:${hostUrl}`;
+    }
+
+    if (!options.serverClass) {
+      options.serverClass = Telnet.Server;
+    }
+
+    const parts = hostUrl.split(':');
+    if (parts.length === 1) {
+      hostUrl = `telnet:0.0.0.0:${parts[0]}`;
+    } else if (parts.length === 2) {
+      hostUrl = `telnet:${parts[0]}:${parts[1]}`;
+    }
+
+    server = new options.serverClass(url.parse(hostUrl), options);
+    return server;
+  }
 }
 
 export namespace Telnet {
@@ -106,13 +132,38 @@ export namespace Telnet {
         this.command = command;
       }
     }
+
+    export class Server extends Telnet.Event { }
+
+    export class ClientConnected extends Server {
+      public connection: Telnet.Connection;
+
+      constructor(connection: Telnet.Connection) {
+        super();
+        this.connection = connection;
+      }
+    }
+
+    export class ClientDisconnected extends Server {
+      public connection: Telnet.Connection;
+
+      constructor(connection: Telnet.Connection) {
+        super();
+        this.connection = connection;
+      }
+    }
+
+    export class Listening extends Server { }
   }
 
   export class Connection extends ReplaySubject<Telnet.Event> {
-    private connection: tls.ClearTextStream | net.Socket | null;
+    private connection: tls.TLSSocket | net.Socket | null;
 
-    constructor(private hostUrl: url.Url, private options?: any) {
+    constructor(private options: Connection.IOptions = {}) {
       super();
+      if (options.connection) {
+        this.connection = options.connection;
+      }
     }
 
     /**
@@ -159,32 +210,35 @@ export namespace Telnet {
      * @throws an error if the client cannot connect
      */
     public connect() {
-      let connection;
+      if (!this.connection) {
+        if (!this.options.remoteUrl) {
+          throw new Error('No remoteUrl is defined');
+        }
 
-      this.next(new Telnet.Event.Connecting());
-      const protocol = this.hostUrl.protocol || 'telnet:';
+        this.next(new Telnet.Event.Connecting());
+        const protocol = this.options.remoteUrl.protocol || 'telnet:';
 
-      if (!this.hostUrl.port) {
-        throw new Error('A port is required to connect to.');
+        if (!this.options.remoteUrl.port) {
+          throw new Error('A port is required to connect to.');
+        }
+
+        switch (protocol) {
+          case 'telnet:':
+            this.connection = this.connectNoTls(this.options.remoteUrl);
+            break;
+          case 'telnets:':
+            this.connection = this.connectTls(this.options.remoteUrl);
+            break;
+          default:
+            throw new Error(this.options.remoteUrl.protocol + ' is not a supported protocol');
+        }
       }
 
-      switch (protocol) {
-        case 'telnet:':
-          connection = this.connectNoTls(this.hostUrl);
-          break;
-        case 'telnets:':
-          connection = this.connectTls(this.hostUrl);
-          break;
-        default:
-          throw new Error(this.hostUrl.protocol + ' is not a supported protocol');
-      }
-
-      this.connection = connection;
-      connection.on('error', (error) => {
+      this.connection.on('error', (error: any) => {
         this.error(error);
       });
 
-      connection.on('data', (data: number[]) => {
+      this.connection.on('data', (data: number[]) => {
         const buffer = Buffer.alloc(data.length);
         let copied = 0;
         for (let cursor = 0; cursor < data.length; ++cursor) {
@@ -201,9 +255,11 @@ export namespace Telnet {
       /*
        * Close the connection if the server closes it
        */
-      connection.on('end', () => {
+      this.connection.on('end', () => {
         this.disconnect();
       });
+
+      return this.connection;
     }
 
     /**
@@ -266,6 +322,70 @@ export namespace Telnet {
         port: Number(hostUrl.port),
       }, () => {
         this.next(new Telnet.Event.Connected());
+      });
+    }
+  }
+
+  export namespace Connection {
+    export interface IOptions {
+      connection?: net.Socket | tls.TLSSocket;
+      remoteUrl?: url.Url;
+      connectionClass?: any;
+    }
+  }
+
+  export class Server extends ReplaySubject<Telnet.Event.Server> {
+    private server: net.Server | tls.Server | null = null;
+
+    constructor(private hostUrl: url.Url, private options: any = {}) {
+      super();
+    }
+
+    public start() {
+      let server: net.Server | tls.Server | undefined;
+      const protocol = this.hostUrl.protocol;
+
+      switch (protocol) {
+        case 'telnet:':
+          server = this.serverNoTls(this.hostUrl);
+          break;
+        case 'telnets:':
+          server = this.serverTls(this.hostUrl);
+          break;
+      }
+
+      if (!server) {
+        throw new Error('No hostUrl protocol has been supplied.');
+      }
+
+      server.on('error', (error: any) => {
+        this.error(error);
+      });
+
+      server.listen(this.hostUrl.port, () => {
+        this.next(new Telnet.Event.Server.Listening());
+      });
+
+      return server;
+    }
+
+    private serverNoTls(hostUrl: url.Url) {
+      return net.createServer({ ...this.options }, (conn: net.Socket) => {
+        const connection = new Telnet.Connection({ connection: conn });
+        conn.on('end', () => {
+          this.next(new Telnet.Event.ClientDisconnected(connection));
+        });
+        this.next(new Telnet.Event.ClientConnected(connection));
+      });
+    }
+
+    private serverTls(hostUrl: url.Url) {
+      return tls.createServer({ ...this.options }, (conn: tls.TLSSocket) => {
+        const connection = new Telnet.Connection({ connection: conn });
+        conn.on('end', () => {
+          this.next(new Telnet.Event.ClientDisconnected(connection));
+        });
+        this.next(new Telnet.Event.ClientConnected(connection));
       });
     }
   }

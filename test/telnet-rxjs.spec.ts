@@ -21,10 +21,19 @@ afterEach(() => {
 });
 
 describe('telnet-rxjs', () => {
-  const TEST_URL = 'telnet://localhost:9999';
+    describe('client', () => {
+        const TEST_URL = 'telnet://localhost:9999';
+        it('should create a client object', () => {
+            const telnet = Telnet.client(TEST_URL, {});
+            expect(telnet).to.not.be.null;
+        });
+    });
 
-  it('should create an object', () => {
-    const telnet = Telnet.client(TEST_URL, {});
-    expect(telnet).to.not.be.null;
-  });
+    describe('server', () => {
+        const TEST_URL = 'telnet://localhost:9999';
+        it('should create a server object', () => {
+            const telnet = Telnet.server(TEST_URL, {});
+            expect(telnet).to.not.be.null;
+        });
+    });
 });
