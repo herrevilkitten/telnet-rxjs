@@ -4,15 +4,18 @@ import * as url from 'url';
 
 import { Observable } from 'rxjs/Observable';
 import { ReplaySubject } from 'rxjs/ReplaySubject';
-import { Subject } from 'rxjs/Subject';
+
+import 'rxjs/add/operator/filter';
+import 'rxjs/add/operator/map';
 
 import { Command } from './command';
 import { Event } from './event';
-
-export const EOL = '\r\n';
-export const DEFAULT_ENCODING = 'utf8';
+import { Protocol } from './protocol';
 
 export class Connection extends ReplaySubject<Event> {
+  public static readonly EOL = '\r\n';
+  public static readonly DEFAULT_ENCODING = 'utf8';
+
   private connection: tls.TLSSocket | net.Socket | null;
 
   constructor(private options: Connection.IOptions = {}) {
@@ -58,7 +61,7 @@ export class Connection extends ReplaySubject<Event> {
    */
   public sendln(data: string) {
     this.send(data);
-    this.send(EOL);
+    this.send(Connection.EOL);
   }
 
   /**
@@ -71,18 +74,18 @@ export class Connection extends ReplaySubject<Event> {
         throw new Error('No remoteUrl is defined');
       }
 
-      this.next(new Event.Connecting());
-      const protocol = this.options.remoteUrl.protocol || 'telnet:';
+      this.next(new Event.Connecting(this));
+      const protocol = this.options.remoteUrl.protocol || Protocol.TELNET;
 
       if (!this.options.remoteUrl.port) {
         throw new Error('A port is required to connect to.');
       }
 
       switch (protocol) {
-        case 'telnet:':
+        case Protocol.TELNET:
           this.connection = this.connectNoTls(this.options.remoteUrl);
           break;
-        case 'telnets:':
+        case Protocol.TELNETS:
           this.connection = this.connectTls(this.options.remoteUrl);
           break;
         default:
@@ -105,7 +108,7 @@ export class Connection extends ReplaySubject<Event> {
         }
       }
 
-      this.next(new Event.Data(buffer.toString(DEFAULT_ENCODING, 0, copied)));
+      this.next(new Event.Data(buffer.toString(Connection.DEFAULT_ENCODING, 0, copied)));
     });
 
     /*
@@ -122,12 +125,12 @@ export class Connection extends ReplaySubject<Event> {
    * Close the telnet connection
    */
   public disconnect() {
-    this.next(new Event.Disconnecting());
+    this.next(new Event.Disconnecting(this));
     if (this.connection) {
       this.connection.end();
       this.connection = null;
     }
-    this.next(new Event.Disconnected());
+    this.next(new Event.Disconnected(this));
   }
 
   /**
@@ -167,7 +170,7 @@ export class Connection extends ReplaySubject<Event> {
       host: hostUrl.hostname,
       port: Number(hostUrl.port),
     }, () => {
-      this.next(new Event.Connected());
+      this.next(new Event.Connected(this));
     });
   }
 
@@ -177,7 +180,7 @@ export class Connection extends ReplaySubject<Event> {
       host: hostUrl.hostname,
       port: Number(hostUrl.port),
     }, () => {
-      this.next(new Event.Connected());
+      this.next(new Event.Connected(this));
     });
   }
 }

@@ -1,6 +1,6 @@
 /* tslint:disable:no-unused-expression */
 
-import { Telnet } from '../src/telnet';
+import Telnet from '../src/telnet';
 
 import sinon = require('sinon');
 import chai = require('chai');

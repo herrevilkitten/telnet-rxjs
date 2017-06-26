@@ -9,19 +9,20 @@
   "main": "dist/telnet.js",
   "types": "dist/telnet.d.ts",
   "scripts": {
-    "clean": "rimraf dist src/**/*.js test/**/*.js",
-    "test": "tsc -p ./tsconfig.spec.json && mocha --require co-mocha",
+    "clean": "rimraf dist test docs",
+    "test": "tsc -p ./tsconfig.spec.json && mocha --require co-mocha test/spec/*.js",
     "build": "npm run clean && tsc -d",
     "lint": "tslint -p tsconfig.json",
     "validate": "npm run test && npm run lint && npm run build",
-    "documentation": "typedoc --out docs"
+    "documentation": "typedoc --out docs --mode file"
   },
   "repository": {
     "type": "git",
     "url": "git@github.com:herrevilkitten/telnet-rxjs.git"
   },
   "author": {
-    "name": "Eric Kidder"
+    "name": "Eric Kidder",
+    "email": "eric@kidderberg.us"
   },
   "license": "MIT",
   "bugs": {

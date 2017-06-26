@@ -9,7 +9,14 @@ export abstract class Event {
 }
 
 export namespace Event {
-  export class ConnectionChange extends Event { }
+  export class ConnectionChange extends Event {
+    public connection: Connection;
+
+    constructor(connection: Connection) {
+      super();
+      this.connection = connection;
+    }
+  }
 
   export class Connecting extends ConnectionChange { }
 
@@ -39,23 +46,11 @@ export namespace Event {
 
   export class Server extends Event { }
 
-  export class ClientConnected extends Server {
-    public connection: Connection;
+  export class Starting extends Server { }
 
-    constructor(connection: Connection) {
-      super();
-      this.connection = connection;
-    }
-  }
+  export class Started extends Server { }
 
-  export class ClientDisconnected extends Server {
-    public connection: Connection;
+  export class Ending extends Server { }
 
-    constructor(connection: Connection) {
-      super();
-      this.connection = connection;
-    }
-  }
-
-  export class Listening extends Server { }
+  export class Ended extends Server { }
 }

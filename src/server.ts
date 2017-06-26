@@ -4,58 +4,74 @@ import * as url from 'url';
 
 import { Observable } from 'rxjs/Observable';
 import { ReplaySubject } from 'rxjs/ReplaySubject';
-import { Subject } from 'rxjs/Subject';
-
-import 'rxjs/add/observable/of';
-import 'rxjs/add/observable/throw';
-import 'rxjs/add/operator/filter';
-import 'rxjs/add/operator/map';
 
 import { Connection } from './connection';
 import { Event } from './event';
+import { Protocol } from './protocol';
 
 export class Server extends ReplaySubject<Event.Server> {
   private server: net.Server | tls.Server | null = null;
+  private connections: Connection[];
 
   constructor(private hostUrl: url.Url, private options: any = {}) {
     super();
+
+    this.connections = [];
   }
 
   public start() {
-    let server: net.Server | tls.Server | undefined;
     const protocol = this.hostUrl.protocol;
+    this.next(new Event.Starting());
 
     switch (protocol) {
-      case 'telnet:':
-        server = this.serverNoTls(this.hostUrl);
+      case Protocol.TELNET:
+        this.server = this.serverNoTls(this.hostUrl);
         break;
-      case 'telnets:':
-        server = this.serverTls(this.hostUrl);
+      case Protocol.TELNETS:
+        this.server = this.serverTls(this.hostUrl);
         break;
     }
 
-    if (!server) {
+    if (!this.server) {
       throw new Error('No hostUrl protocol has been supplied.');
     }
 
-    server.on('error', (error: any) => {
+    this.server.on('error', (error: any) => {
       this.error(error);
     });
 
-    server.listen(Number(this.hostUrl.port), this.hostUrl.hostname, 5, () => {
-      this.next(new Event.Server.Listening());
+    this.server.listen(Number(this.hostUrl.port), this.hostUrl.hostname, 5, () => {
+      this.next(new Event.Started());
     });
 
-    return server;
+    return this.server;
+  }
+
+  public stop() {
+    if (!this.server) {
+      return;
+    }
+
+    this.next(new Event.Ending());
+
+    if (this.connections) {
+      this.connections.forEach((connection) => {
+        connection.disconnect();
+      });
+    }
+
+    this.server.close(() => {
+      this.next(new Event.Ended());
+    });
   }
 
   private serverNoTls(hostUrl: url.Url) {
     return net.createServer({ ...this.options }, (conn: net.Socket) => {
       const connection = new Connection({ connection: conn });
       conn.on('end', () => {
-        this.next(new Event.ClientDisconnected(connection));
+        this.next(new Event.Disconnected(connection));
       });
-      this.next(new Event.ClientConnected(connection));
+      this.next(new Event.Connected(connection));
     });
   }
 
@@ -63,9 +79,9 @@ export class Server extends ReplaySubject<Event.Server> {
     return tls.createServer({ ...this.options }, (conn: tls.TLSSocket) => {
       const connection = new Connection({ connection: conn });
       conn.on('end', () => {
-        this.next(new Event.ClientDisconnected(connection));
+        this.next(new Event.Disconnected(connection));
       });
-      this.next(new Event.ClientConnected(connection));
+      this.next(new Event.Connected(connection));
     });
   }
 }

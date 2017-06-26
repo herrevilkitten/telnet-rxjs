@@ -1,25 +1,16 @@
-import * as net from 'net';
-import * as tls from 'tls';
 import * as url from 'url';
-
-import { Observable } from 'rxjs/Observable';
-import { ReplaySubject } from 'rxjs/ReplaySubject';
-import { Subject } from 'rxjs/Subject';
-
-import 'rxjs/add/observable/of';
-import 'rxjs/add/observable/throw';
-import 'rxjs/add/operator/filter';
-import 'rxjs/add/operator/map';
 
 import { Command } from './command';
 import { Connection } from './connection';
 import { Event } from './event';
+import { Protocol } from './protocol';
 import { Server } from './server';
 
-export class Telnet {
+export default class Telnet {
   public static Command = Command;
   public static Connection = Connection;
   public static Event = Event;
+  public static Protocol = Protocol;
   public static Server = Server;
 
   /**
@@ -45,7 +36,7 @@ export class Telnet {
 
     const parts = hostUrl.split(':');
     if (parts.length === 2) {
-      hostUrl = `telnet:${parts[0]}:${parts[1]}`;
+      hostUrl = Protocol.build(Protocol.TELNET, parts[0], parts[1]);
     }
 
     client = new options.clientClass(url.parse(hostUrl), options);
@@ -70,7 +61,7 @@ export class Telnet {
     }
 
     if (typeof hostUrl === 'number') {
-      hostUrl = `telnet:0.0.0.0:${hostUrl}`;
+      hostUrl = Protocol.build(Protocol.TELNET, '0.0.0.0', hostUrl);
     }
 
     if (!options.serverClass) {
@@ -79,9 +70,9 @@ export class Telnet {
 
     const parts = hostUrl.split(':');
     if (parts.length === 1) {
-      hostUrl = `telnet:0.0.0.0:${parts[0]}`;
+      hostUrl = Protocol.build(Protocol.TELNET, '0.0.0.0', parts[0]);
     } else if (parts.length === 2) {
-      hostUrl = `telnet:${parts[0]}:${parts[1]}`;
+      hostUrl = Protocol.build(Protocol.TELNET, parts[0], parts[1]);
     }
 
     server = new options.serverClass(url.parse(hostUrl), options);
