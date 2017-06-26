@@ -45,30 +45,27 @@ import { Telnet } from 'telnet-rxjs';
 // const Telnet = require('telnet-rxjs').Telnet;
 
 const server = Telnet.server(80);
-const connections = [];
+
+server.filter((event) => event instanceof Telnet.Event.Started)
+  .subscribe((event) => {
+    console.log('Server has been started.');
+  });
 
 server.filter((event) => event instanceof Telnet.Event.Connected)
-  .subscribe((event: Telnet.Event.Connected) => {
-    console.log('Received a new connection:', event.connection);
-  });
-
-let connected = false;
-
-client.filter((event) => event instanceof Telnet.Event.Connected)
   .subscribe((event) => {
-    connected = true;
-    client.sendln('GET /');
-  });
+    const socket = event.connection.socket;
 
-client.data
-  .subscribe((data) => {
-    if (!connected) {
+    if (!socket) {
+      console.error('No socket for', event.connection);
       return;
     }
-    console.log(data);
+
+    console.log('Connection received from', socket.remoteAddress);
+    event.connection.sendln('Hello!');
+    event.connection.disconncet();
   });
 
-client.connect();
+server.start();
 ```
 
 ## INSTALLATION
@@ -85,9 +82,11 @@ npm install telnet-rxjs
 
 `telnet-rxjs` is a simple wrapper around a telnet client or server, using [RxJS](https://github.com/ReactiveX/rxjs) for handling data received from the server.
 
-### Create a Connection
+### Telnet Client
 
-Connections are created by using the `Telnet.client` static factory method.  This method takes two arguments
+#### Create a Connection
+
+Connections are created by using the `Telnet.client` static factory method or `createClient` function.  This method takes two arguments
 
 * The URI of the host to connect to
 * Optionally, additional options to pass to the network socket
@@ -102,24 +101,23 @@ const client = Telnet.client('telnets:some.example.com:8443', { rejectUnauthoriz
 
 The factory method returns a `Telnet.Connection` object, which is a subclass of `Observable<Telnet.Event>`.
 
-### Listen for Events and Data
-
+#### Listen for Events and Data
 As an observable, the telnet connection can be subscribed to in order to receive data from the server.  The default subscription publishes `Telnet.Event` objects.
 
-#### Telnet Events
+##### Client Events
 All events have a `timestamp` field that is a `Date` object.
 
 `Telnet.Event.Connecting`
-Published when the client begins connecting to the server.
+Published when the client begins connecting to the server.  The event has a `connection` property for the client.
 
 `Telnet.Event.Connected`
-Published after a connection to the server has been established.
+Published after a connection to the server has been established.  The event has a `connection` property for the client.
 
 `Telnet.Event.Disconnecting`
-Published when the client begins to disconnect from the server.
+Published when the client begins to disconnect from the server.  The event has a `connection` property for the client.
 
 `Telnet.Event.Disconnected`
-Published when the client has closed its connection to the server.
+Published when the client has closed its connection to the server.  The event has a `connection` property for the client.
 
 `Telnet.Event.Data`
 Published when data is received from the server.  The event has a `data` field that is a string.
@@ -129,7 +127,7 @@ Published when a [telnet command](http://www.faqs.org/rfcs/rfc854.html) has been
 
 Additional accessors are provided that act as filters for the `Data` and `Command` events.  The `data` accessor publishes each string of data.  The `commands` accessor publishes each array of numbers.
 
-#### Listen for All Events
+##### Listen for All Events
 
 ```
 client.subscribe((event) => {
@@ -137,7 +135,7 @@ client.subscribe((event) => {
 });
 ```
 
-#### Listen for Data
+##### Listen for Data
 
 ```
 client.data.subscribe((data) => {
@@ -151,7 +149,7 @@ client.filter((event) => event instanceof Telnet.Event.Data).subscribe((event) =
 });
 ```
 
-#### Listen for Commands
+##### Listen for Commands
 
 ```
 client.commands.subscribe((command) => {
@@ -165,7 +163,7 @@ client.filter((event) => event instanceof Telnet.Event.Command).subscribe((event
 });
 ```
 
-#### Listen for Errors
+##### Listen for Errors
 
 ```
 client.subscribe(
@@ -178,8 +176,61 @@ client.subscribe(
 );
 ```
 
-### Connect
+#### Connect
 The `connect` method must be called before any connections will be opened.  Configuration errors, such as missing port numbers, will cause an exception to be thrown.  Other errors will be reported on the error channel of the client observable.
+
+#### Disconnect
+The `disconnect` method closes the connection to the server.
+
+### Telnet Server
+Connections are created by using the `Telnet.server` static factory method or `createServer` function.  This method takes two arguments
+
+* The URI of the server to create
+* Optionally, additional options to pass to the network socket
+
+The URI should be in formats similar to `protocol:host:port`.  Only the port is required.  Protocol can be either `telnet` or `telnets`, which uses a TLS connection.  If the protocol is not specified, it defaults to `telnet`.  If the host is not specified, it defaults to `0.0.0.0`.
+
+The options can be any option accepted by the [net.createServer](https://nodejs.org/api/net.html#net_net_createserver_options_connectionlistener) or [tls.createServer](https://nodejs.org/api/tls.html#tls_tls_createserver_options_secureconnectionlistener) functions of Node.js.
+
+The factory method returns a `Telnet.Server` object, which is a subclass of `Observable<Telnet.Event>`.
+
+#### Listen for Events
+As an observable, the telnet connection can be subscribed to in order to receive data from the server.  The default subscription publishes `Telnet.Event` objects.
+
+##### Server Events
+All events have a `timestamp` field that is a `Date` object.
+
+`Telnet.Event.Connecting`
+Published when a client begins connecting to the server. The event has a `connection` property for the client.
+
+`Telnet.Event.Connected`
+Published after a connection to the server has been established. The event has a `connection` property for the client.
+
+`Telnet.Event.Disconnecting`
+Published when a client begins to disconnect from the server. The event has a `connection` property for the client.
+
+`Telnet.Event.Disconnected`
+Published when a client has closed its connection to the server. The event has a `connection` property for the client.
+
+`Telnet.Event.Starting`
+Published when the server begins starting up.
+
+`Telnet.Event.Started`
+Published after the server has started up.
+
+`Telnet.Event.Ending`
+Published when the server begins shutting down.
+
+`Telnet.Event.Ended`
+Published after the server has shut down.
+
+Additional accessors are provided that act as filters for the `Data` and `Command` events.  The `data` accessor publishes each string of data.  The `commands` accessor publishes each array of numbers.
+
+#### Start
+The `start` method must be called before the server will listen and any clients can connect.  Configuration errors, such as missing port numbers, will cause an exception to be thrown.  Other errors will be reported on the error channel of the server observable.
+
+#### Stop
+The `stop` method will shutdown the server.  First, it will call the `disconnect` method on each connection.  Then, it will close the server port.
 
 ## LINKS
 
