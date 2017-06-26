@@ -1,6 +1,6 @@
 /* tslint:disable:no-unused-expression */
 
-import Telnet from '../src/telnet';
+import { createServer, Telnet } from '../src/telnet';
 
 import sinon = require('sinon');
 import chai = require('chai');
@@ -23,7 +23,7 @@ afterEach(() => {
 describe('Telnet.server', () => {
   const TEST_URL = 'telnet://localhost:9999';
   it('should create a server object', () => {
-    const telnet = Telnet.server(TEST_URL, {});
+    const telnet = createServer(TEST_URL, {});
     expect(telnet).to.not.be.null;
   });
 });

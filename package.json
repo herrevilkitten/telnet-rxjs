@@ -9,13 +9,20 @@
   "main": "dist/telnet.js",
   "types": "dist/telnet.d.ts",
   "scripts": {
-    "clean": "rimraf dist test docs",
+    "clean": "rimraf dist test docs examples/build",
     "test": "tsc -p ./tsconfig.spec.json && mocha --require co-mocha test/spec/*.js",
     "build": "npm run clean && tsc -d",
     "lint": "tslint -p ./tsconfig.json",
     "validate": "npm run test && npm run lint && npm run build",
     "documentation": "typedoc --out docs --mode file",
-    "version": "tsc --version; mocha --version"
+    "examples:build": "cd examples/typescript; tsc",
+    "examples:client": "node examples/javascript/client.js",
+    "examples:server": "node examples/javascript/server.js",
+    "examples:client:typescript": "npm run examples:build && node examples/build/client.js",
+    "examples:server:typescript": "npm run examples:build && node examples/build/server.js",
+    "version": "npm run version:typescript; npm run version:mocha",
+    "version:typescript": "echo TypeScript; tsc --version",
+    "version:mocha": "echo Mocha; mocha --version"
   },
   "repository": {
     "type": "git",
