@@ -4,21 +4,22 @@ const port = 8765;
 const server = Telnet.server(port);
 
 server.filter((event) => event instanceof Telnet.Event.Started)
-  .subscribe(() => {
-    console.log('Server has started on port', 8765);
+  .subscribe((event) => {
+    console.log('Server has been started.');
   });
 
 server.filter((event) => event instanceof Telnet.Event.Connected)
   .subscribe((event) => {
-    const connection = event.connection;
     const socket = event.connection.socket;
 
     if (!socket) {
-      console.error('No socket for', connection);
+      console.error('No socket for', event.connection);
       return;
     }
 
-    console.log('Connetion received from', socket.remoteAddress);
+    console.log('Connection received from', socket.remoteAddress);
+    event.connection.sendln('Hello!');
+    event.connection.disconncet();
   });
 
 server.start();

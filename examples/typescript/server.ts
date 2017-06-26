@@ -10,15 +10,14 @@ server.filter((event) => event instanceof Telnet.Event.Started)
 
 server.filter((event) => event instanceof Telnet.Event.Connected)
   .subscribe((event: Event.Connected) => {
-    const connection = event.connection;
     const socket = event.connection.socket;
 
     if (!socket) {
-      console.error('No socket for', connection);
+      console.error('No socket for', event.connection);
       return;
     }
 
-    console.log('Connetion received from', socket.remoteAddress);
+    console.log('Connection received from', socket.remoteAddress);
   });
 
 server.start();
