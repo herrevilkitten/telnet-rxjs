@@ -1,6 +1,6 @@
 {
   "name": "telnet-rxjs",
-  "version": "1.0.7",
+  "version": "2.0.0",
   "description": "A node.js telnet library that wraps the sockets with RxJS observables",
   "keywords": [
     "telnet",
