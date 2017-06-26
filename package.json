@@ -12,9 +12,10 @@
     "clean": "rimraf dist test docs",
     "test": "tsc -p ./tsconfig.spec.json && mocha --require co-mocha test/spec/*.js",
     "build": "npm run clean && tsc -d",
-    "lint": "tslint -p tsconfig.json",
+    "lint": "tslint -p ./tsconfig.json",
     "validate": "npm run test && npm run lint && npm run build",
-    "documentation": "typedoc --out docs --mode file"
+    "documentation": "typedoc --out docs --mode file",
+    "version": "tsc --version; mocha --version"
   },
   "repository": {
     "type": "git",
