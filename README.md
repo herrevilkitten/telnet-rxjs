@@ -5,12 +5,15 @@ A node.js telnet library that wraps the sockets with RxJS observables.
 [![Build Status](https://travis-ci.org/herrevilkitten/telnet-rxjs.svg?branch=master)](https://travis-ci.org/herrevilkitten/telnet-rxjs)
 
 ## SYNPOSIS
+
+### Connect to a remote server
+
 ```typescript
 // TypeScript and ES6
-import Telnet from 'telnet-rxjs';
+import { Telnet } from 'telnet-rxjs';
 
 // CommonJS
-// const Telnet = require('telnet-rxjs').default;
+// const Telnet = require('telnet-rxjs').Telnet;
 
 const client = Telnet.client('www.yahoo.com:80');
 
@@ -32,6 +35,42 @@ client.data
 
 client.connect();
 ```
+
+### Start a server
+```typescript
+// TypeScript and ES6
+import { Telnet } from 'telnet-rxjs';
+
+// CommonJS
+// const Telnet = require('telnet-rxjs').Telnet;
+
+const server = Telnet.server(80);
+const connections = [];
+
+server.filter((event) => event instanceof Telnet.Event.Connected)
+  .subscribe((event: Telnet.Event.Connected) => {
+    console.log('Received a new connection:', event.connection);
+  });
+
+let connected = false;
+
+client.filter((event) => event instanceof Telnet.Event.Connected)
+  .subscribe((event) => {
+    connected = true;
+    client.sendln('GET /');
+  });
+
+client.data
+  .subscribe((data) => {
+    if (!connected) {
+      return;
+    }
+    console.log(data);
+  });
+
+client.connect();
+```
+
 ## INSTALLATION
 
 ```
@@ -44,7 +83,7 @@ npm install telnet-rxjs
 
 ## DESCRIPTION
 
-`telnet-rxjs` is a simple wrapper around a telnet client, using [RxJS](https://github.com/ReactiveX/rxjs) for handling data received from the server.
+`telnet-rxjs` is a simple wrapper around a telnet client or server, using [RxJS](https://github.com/ReactiveX/rxjs) for handling data received from the server.
 
 ### Create a Connection
 

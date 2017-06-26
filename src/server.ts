@@ -67,7 +67,7 @@ export class Server extends ReplaySubject<Event.Server> {
 
   private serverNoTls(hostUrl: url.Url) {
     return net.createServer({ ...this.options }, (conn: net.Socket) => {
-      const connection = new Connection({ connection: conn });
+      const connection = new Connection({ socket: conn });
       conn.on('end', () => {
         this.next(new Event.Disconnected(connection));
       });
@@ -77,7 +77,7 @@ export class Server extends ReplaySubject<Event.Server> {
 
   private serverTls(hostUrl: url.Url) {
     return tls.createServer({ ...this.options }, (conn: tls.TLSSocket) => {
-      const connection = new Connection({ connection: conn });
+      const connection = new Connection({ socket: conn });
       conn.on('end', () => {
         this.next(new Event.Disconnected(connection));
       });
