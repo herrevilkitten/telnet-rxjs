@@ -6,22 +6,24 @@
     "telnet",
     "rxjs"
   ],
-  "main": "dist/telnet-rxjs.js",
-  "types": "dist/telnet-rxjs.d.ts",
+  "main": "dist/telnet.js",
+  "types": "dist/telnet.d.ts",
   "scripts": {
-    "clean": "rimraf dist src/**/*.js test/**/*.js",
-    "test": "tsc -p ./tsconfig.spec.json && mocha --require co-mocha",
+    "clean": "rimraf dist test docs",
+    "test": "tsc -p ./tsconfig.spec.json && mocha --require co-mocha test/spec/*.js",
     "build": "npm run clean && tsc -d",
-    "lint": "tslint -p tsconfig.json",
+    "lint": "tslint -p ./tsconfig.json",
     "validate": "npm run test && npm run lint && npm run build",
-    "documentation": "typedoc --out docs"
+    "documentation": "typedoc --out docs --mode file",
+    "version": "tsc --version; mocha --version"
   },
   "repository": {
     "type": "git",
     "url": "git@github.com:herrevilkitten/telnet-rxjs.git"
   },
   "author": {
-    "name": "Eric Kidder"
+    "name": "Eric Kidder",
+    "email": "eric@kidderberg.us"
   },
   "license": "MIT",
   "bugs": {
@@ -29,24 +31,22 @@
   },
   "homepage": "https://github.com/herrevilkitten/telnet-rxjs",
   "devDependencies": {
-    "@types/chai": "^3.5.2",
+    "@types/chai": "^4.0.1",
     "@types/mocha": "^2.2.41",
-    "@types/node": "^7.0.18",
-    "@types/sinon": "^2.2.2",
-    "@types/sinon-chai": "^2.7.27",
-    "chai": "^3.5.0",
+    "@types/node": "^8.0.2",
+    "@types/sinon": "^2.3.1",
+    "@types/sinon-chai": "^2.7.28",
+    "chai": "^4.0.2",
     "co-mocha": "^1.2.0",
     "mocha": "^3.4.2",
     "rimraf": "^2.6.1",
-    "sinon": "^2.3.1",
-    "sinon-chai": "^2.10.0",
-    "tslint": "^5.2.0",
+    "sinon": "^2.3.5",
+    "sinon-chai": "^2.11.0",
+    "tslint": "^5.4.3",
     "typedoc": "^0.7.1",
-    "typescript": "^2.3.2"
+    "typescript": "2.3.4"
   },
   "dependencies": {
-    "co-mocha": "^1.2.0",
-    "mocha": "^3.4.2",
-    "rxjs": "^5.4.0"
+    "rxjs": "^5.4.1"
   }
 }
