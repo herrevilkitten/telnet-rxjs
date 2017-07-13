@@ -36,7 +36,7 @@ export function createClient(hostUrl: string, options: any = {}) {
         hostUrl = Protocol.build(Protocol.TELNET, parts[0], parts[1]);
     }
 
-    client = new options.clientClass(url.parse(hostUrl), options);
+    client = new options.clientClass({ remoteUrl: url.parse(hostUrl), ...options });
     return client;
 }
 
@@ -70,7 +70,7 @@ export function createServer(hostUrl: string | number, options: any = {}) {
         hostUrl = Protocol.build(Protocol.TELNET, parts[0], parts[1]);
     }
 
-    server = new options.serverClass(url.parse(hostUrl), options);
+    server = new options.serverClass({ hostUrl: url.parse(hostUrl), ...options });
     return server;
 }
 

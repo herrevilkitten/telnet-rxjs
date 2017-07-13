@@ -7,6 +7,6 @@ export class Protocol {
   public static readonly TELNETS: 'telnets:' = 'telnets:';
 
   public static build(protocol: ProtocolType, hostname: string, port: number | string) {
-    return `${protocol}:${hostname}:${port}`;
+    return `${protocol}${hostname}:${port}`;
   }
 }
