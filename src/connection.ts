@@ -16,12 +16,19 @@ export class Connection extends ReplaySubject<Event> {
     public static readonly EOL = '\r\n';
     public static readonly DEFAULT_ENCODING = 'utf8';
 
-    private PrivateSocket: tls.TLSSocket | net.Socket | null;
+    private PrivateSocket: tls.TLSSocket | net.Socket;
+    private state: Connection.State = Connection.State.Disconnected;
 
     constructor(private options: Connection.IOptions = {}) {
         super();
         if (options.socket) {
             this.PrivateSocket = options.socket;
+        } else {
+            this.PrivateSocket = new net.Socket();
+        }
+
+        if (this.PrivateSocket.writable || this.PrivateSocket.readable) {
+            this.state = Connection.State.Connected;
         }
     }
 
@@ -33,7 +40,7 @@ export class Connection extends ReplaySubject<Event> {
      * An observable that tracks the data being sent to the client
      */
     get data(): Observable<string> {
-        return this.filter((event) => event instanceof Event.Data)
+        return this.filter((event: Event) => event instanceof Event.Data)
             .map((event: Event.Data) => event.data);
     }
 
@@ -41,7 +48,7 @@ export class Connection extends ReplaySubject<Event> {
      * An observable that tracks any telnet commands sent to the client
      */
     get commands(): Observable<number[]> {
-        return this.filter((event) => event instanceof Event.Command)
+        return this.filter((event: Event) => event instanceof Event.Command)
             .map((event: Event.Command) => event.command);
     }
 
@@ -73,12 +80,12 @@ export class Connection extends ReplaySubject<Event> {
      * @throws an error if the client cannot connect
      */
     public connect() {
-        if (!this.PrivateSocket) {
+        if (!this.connected) {
             if (!this.options.remoteUrl) {
                 throw new Error('No remoteUrl is defined');
             }
 
-            this.next(new Event.Connecting(this));
+            this.sendConnecting();
             const protocol = this.options.remoteUrl.protocol || Protocol.TELNET;
 
             if (!this.options.remoteUrl.port) {
@@ -129,12 +136,19 @@ export class Connection extends ReplaySubject<Event> {
      * Close the telnet connection
      */
     public disconnect() {
-        this.next(new Event.Disconnecting(this));
-        if (this.PrivateSocket) {
+        if (this.connected) {
+            this.sendDisconnecting();
             this.PrivateSocket.end();
-            this.PrivateSocket = null;
+            this.PrivateSocket = new net.Socket();
+            this.sendDisconnected();
         }
-        this.next(new Event.Disconnected(this));
+    }
+
+    /**
+     * Return whether the underlying socket is connected
+     */
+    public get connected() {
+        return this.state === Connection.State.Connected;
     }
 
     /**
@@ -173,8 +187,8 @@ export class Connection extends ReplaySubject<Event> {
             ...this.options,
             host: hostUrl.hostname,
             port: Number(hostUrl.port),
-        }, () => {
-            this.next(new Event.Connected(this));
+        } as any, () => {
+            this.sendConnected();
         });
     }
 
@@ -183,9 +197,29 @@ export class Connection extends ReplaySubject<Event> {
             ...this.options,
             host: hostUrl.hostname,
             port: Number(hostUrl.port),
-        }, () => {
-            this.next(new Event.Connected(this));
+        } as any, () => {
+            this.sendConnected();
         });
+    }
+
+    private sendDisconnecting() {
+        this.state = Connection.State.Disconnecting;
+        this.next(new Event.Disconnecting(this));
+    }
+
+    private sendDisconnected() {
+        this.state = Connection.State.Disconnected;
+        this.next(new Event.Disconnected(this));
+    }
+
+    private sendConnecting() {
+        this.state = Connection.State.Connecting;
+        this.next(new Event.Connecting(this));
+    }
+
+    private sendConnected() {
+        this.state = Connection.State.Connected;
+        this.next(new Event.Connected(this));
     }
 }
 
@@ -195,4 +229,21 @@ export namespace Connection {
         remoteUrl?: url.Url;
         connectionClass?: any;
     }
+
+    // TODO: when TypeDoc suppports TypeScript 2.4+, switch this back to an enum
+    export type StateType = 'DISCONNECTED' | 'DISCONNECTING' | 'CONNECTING' | 'CONNECTED';
+    export class State {
+        public static Disconnected: 'DISCONNECTED' = 'DISCONNECTED';
+        public static Disconnecting: 'DISCONNECTING' = 'DISCONNECTING';
+        public static Connected: 'CONNECTED' = 'CONNECTED';
+        public static Connecting: 'CONNECTING' = 'CONNECTING';
+    }
+    /*
+    export enum State {
+        Disconnected = 'DISCONNECTED',
+        Disconnecting = 'DISCONNECTING',
+        Connecting = 'CONNECTING',
+        Connected = 'CONNECTED',
+    }
+    */
 }
