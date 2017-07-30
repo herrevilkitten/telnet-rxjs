@@ -230,10 +230,20 @@ export namespace Connection {
         connectionClass?: any;
     }
 
+    // TODO: when TypeDoc suppports TypeScript 2.4+, switch this back to an enum
+    export type StateType = 'DISCONNECTED' | 'DISCONNECTING' | 'CONNECTING' | 'CONNECTED';
+    export class State {
+        public static Disconnected: 'DISCONNECTED' = 'DISCONNECTED';
+        public static Disconnecting: 'DISCONNECTING' = 'DISCONNECTING';
+        public static Connected: 'CONNECTED' = 'CONNECTED';
+        public static Connecting: 'CONNECTING' = 'CONNECTING';
+    }
+    /*
     export enum State {
         Disconnected = 'DISCONNECTED',
         Disconnecting = 'DISCONNECTING',
         Connecting = 'CONNECTING',
         Connected = 'CONNECTED',
     }
+    */
 }
