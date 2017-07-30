@@ -10,25 +10,25 @@ import { Event } from './event';
 import { Protocol } from './protocol';
 
 export class Server extends ReplaySubject<Event.Server> {
-  private server: net.Server | tls.Server | null = null;
+  private server: net.Server | tls.Server;
   private connections: Connection[];
 
-  constructor(private hostUrl: url.Url, private options: any = {}) {
+  constructor(private options: any = {}) {
     super();
 
     this.connections = [];
   }
 
   public start() {
-    const protocol = this.hostUrl.protocol;
+    const protocol = this.options.hostUrl.protocol;
     this.next(new Event.Starting());
 
     switch (protocol) {
       case Protocol.TELNET:
-        this.server = this.serverNoTls(this.hostUrl);
+        this.server = this.serverNoTls(this.options.hostUrl);
         break;
       case Protocol.TELNETS:
-        this.server = this.serverTls(this.hostUrl);
+        this.server = this.serverTls(this.options.hostUrl);
         break;
     }
 
@@ -40,7 +40,7 @@ export class Server extends ReplaySubject<Event.Server> {
       this.error(error);
     });
 
-    this.server.listen(Number(this.hostUrl.port), this.hostUrl.hostname, 5, () => {
+    this.server.listen(Number(this.options.hostUrl.port), this.options.hostUrl.hostname, 5, () => {
       this.next(new Event.Started());
     });
 

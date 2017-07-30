@@ -36,7 +36,16 @@ export function createClient(hostUrl: string, options: any = {}) {
         hostUrl = Protocol.build(Protocol.TELNET, parts[0], parts[1]);
     }
 
-    client = new options.clientClass({ remoteUrl: url.parse(hostUrl), ...options });
+    const parsedUrl = url.parse(hostUrl);
+    if (parsedUrl.protocol !== 'telnet:' && parsedUrl.protocol !== 'telnets:') {
+        throw new Error(`Invalid protocol: ${parsedUrl.protocol}`);
+    }
+
+    if (parsedUrl.port === null || parsedUrl.port === undefined) {
+        throw new Error('No host port given');
+    }
+
+    client = new options.clientClass({ remoteUrl: parsedUrl, ...options });
     return client;
 }
 
@@ -57,20 +66,29 @@ export function createServer(hostUrl: string | number, options: any = {}) {
 
     if (typeof hostUrl === 'number') {
         hostUrl = Protocol.build(Protocol.TELNET, '0.0.0.0', hostUrl);
+    } else {
+        const parts = hostUrl.split(':');
+        if (parts.length === 1) {
+            hostUrl = Protocol.build(Protocol.TELNET, '0.0.0.0', parts[0]);
+        } else if (parts.length === 2) {
+            hostUrl = Protocol.build(Protocol.TELNET, parts[0], parts[1]);
+        }
+    }
+
+    const parsedUrl = url.parse(hostUrl);
+    if (parsedUrl.protocol !== 'telnet:' && parsedUrl.protocol !== 'telnets:') {
+        throw new Error(`Invalid protocol: ${parsedUrl.protocol}`);
+    }
+
+    if (parsedUrl.port === null || parsedUrl.port === undefined) {
+        throw new Error('No host port given');
     }
 
     if (!options.serverClass) {
         options.serverClass = Server;
     }
 
-    const parts = hostUrl.split(':');
-    if (parts.length === 1) {
-        hostUrl = Protocol.build(Protocol.TELNET, '0.0.0.0', parts[0]);
-    } else if (parts.length === 2) {
-        hostUrl = Protocol.build(Protocol.TELNET, parts[0], parts[1]);
-    }
-
-    server = new options.serverClass({ hostUrl: url.parse(hostUrl), ...options });
+    server = new options.serverClass({ hostUrl: parsedUrl, ...options });
     return server;
 }
 

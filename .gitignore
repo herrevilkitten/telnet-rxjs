@@ -40,3 +40,5 @@ dist
 test
 docs
 examples/build
+test.js
+launch.json
