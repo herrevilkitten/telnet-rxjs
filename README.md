@@ -9,11 +9,12 @@ A node.js telnet library that wraps the sockets with RxJS observables.
 ### Connect to a remote server
 
 ```typescript
-// TypeScript and ES6
 import { Telnet } from 'telnet-rxjs';
 
-// CommonJS
 // const Telnet = require('telnet-rxjs').Telnet;
+
+// const { Telnet } = require('telnet-rxjs');
+
 
 const client = Telnet.client('www.yahoo.com:80');
 
@@ -38,11 +39,11 @@ client.connect();
 
 ### Start a server
 ```typescript
-// TypeScript and ES6
 import { Telnet } from 'telnet-rxjs';
 
-// CommonJS
 // const Telnet = require('telnet-rxjs').Telnet;
+
+// const { Telnet } = require('telnet-rxjs');
 
 const server = Telnet.server(80);
 
@@ -62,7 +63,7 @@ server.filter((event) => event instanceof Telnet.Event.Connected)
 
     console.log('Connection received from', socket.remoteAddress);
     event.connection.sendln('Hello!');
-    event.connection.disconncet();
+    event.connection.disconnect();
   });
 
 server.start();
@@ -129,6 +130,8 @@ Additional accessors are provided that act as filters for the `Data` and `Comman
 
 ##### Listen for All Events
 
+Events are all subclasses of Telnet.Event.
+
 ```
 client.subscribe((event) => {
   console.log('Received event:', event);
@@ -136,6 +139,8 @@ client.subscribe((event) => {
 ```
 
 ##### Listen for Data
+
+The data will be returned as a string.
 
 ```
 client.data.subscribe((data) => {
@@ -150,6 +155,8 @@ client.filter((event) => event instanceof Telnet.Event.Data).subscribe((event) =
 ```
 
 ##### Listen for Commands
+
+The commands will be an array of numbers.
 
 ```
 client.commands.subscribe((command) => {
@@ -174,6 +181,18 @@ client.subscribe(
     console.error('An error occurred:', error);
   }
 );
+```
+
+or
+
+```
+client
+  .catch((error) => {
+    console.error('An error occurred:', error);
+  })
+  .subscribe((event) => {
+    console.log('Received event:', event);
+  });
 ```
 
 #### Connect

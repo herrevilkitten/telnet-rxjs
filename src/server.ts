@@ -67,21 +67,31 @@ export class Server extends ReplaySubject<Event.Server> {
 
   private serverNoTls(hostUrl: url.Url) {
     return net.createServer({ ...this.options }, (conn: net.Socket) => {
-      const connection = new Connection({ socket: conn });
-      conn.on('end', () => {
-        this.next(new Event.Disconnected(connection));
-      });
-      this.next(new Event.Connected(connection));
+      this.connectionFactory(conn);
     });
   }
 
   private serverTls(hostUrl: url.Url) {
     return tls.createServer({ ...this.options }, (conn: tls.TLSSocket) => {
-      const connection = new Connection({ socket: conn });
-      conn.on('end', () => {
+      this.connectionFactory(conn);
+    });
+  }
+
+  private connectionFactory(socket: net.Socket | tls.TLSSocket) {
+    const connection = new this.options.clientClass({ socket }) as Connection;
+    connection.filter((event) => event instanceof Event.Connected)
+      .subscribe((_) => {
+        this.connections.push(connection);
+        this.next(new Event.Connected(connection));
+      });
+    connection.filter((event) => event instanceof Event.Disconnected)
+      .subscribe((_) => {
+        const pos = this.connections.indexOf(connection);
+        if (pos !== -1) {
+          this.connections.splice(pos, 1);
+        }
         this.next(new Event.Disconnected(connection));
       });
-      this.next(new Event.Connected(connection));
-    });
+    connection.connect();
   }
 }

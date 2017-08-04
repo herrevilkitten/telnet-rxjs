@@ -102,6 +102,8 @@ export class Connection extends ReplaySubject<Event> {
                 default:
                     throw new Error(this.options.remoteUrl.protocol + ' is not a supported protocol');
             }
+        } else {
+            this.sendConnected();
         }
 
         this.PrivateSocket.on('error', (error: any) => {

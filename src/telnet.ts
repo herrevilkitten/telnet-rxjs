@@ -88,6 +88,10 @@ export function createServer(hostUrl: string | number, options: any = {}) {
         options.serverClass = Server;
     }
 
+    if (!options.clientClass) {
+        options.clientClass = Connection;
+    }
+
     server = new options.serverClass({ hostUrl: parsedUrl, ...options });
     return server;
 }
