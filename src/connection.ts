@@ -41,7 +41,7 @@ export class Connection extends ReplaySubject<Event> {
      */
     get data(): Observable<string> {
         return this.filter((event: Event) => event instanceof Event.Data)
-            .map((event: Event.Data) => event.data);
+            .map((event) => (event as Event.Data).data);
     }
 
     /**
@@ -49,7 +49,7 @@ export class Connection extends ReplaySubject<Event> {
      */
     get commands(): Observable<number[]> {
         return this.filter((event: Event) => event instanceof Event.Command)
-            .map((event: Event.Command) => event.command);
+            .map((event) => (event as Event.Command).command);
     }
 
     /**

@@ -6,6 +6,9 @@
     "telnet",
     "rxjs"
   ],
+  "engines": {
+    "node": "8.9.x"
+  },
   "main": "dist/telnet.js",
   "types": "dist/telnet.d.ts",
   "scripts": {
