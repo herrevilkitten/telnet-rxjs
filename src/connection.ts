@@ -176,8 +176,12 @@ export class Connection extends ReplaySubject<Event> {
                 }
             }
         } else {
-            telnetCommand.push(data[position]++);
-            telnetCommand.push(data[position]++);
+            if (position < data.length) {
+                telnetCommand.push(data[position++]);
+            }
+            if (position < data.length) {
+                telnetCommand.push(data[position++]);
+            }
         }
         this.next(new Event.Command(telnetCommand));
 
@@ -240,12 +244,4 @@ export namespace Connection {
         public static Connected: 'CONNECTED' = 'CONNECTED';
         public static Connecting: 'CONNECTING' = 'CONNECTING';
     }
-    /*
-    export enum State {
-        Disconnected = 'DISCONNECTED',
-        Disconnecting = 'DISCONNECTING',
-        Connecting = 'CONNECTING',
-        Connected = 'CONNECTED',
-    }
-    */
 }
