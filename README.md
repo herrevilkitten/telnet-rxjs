@@ -47,11 +47,6 @@ import { Telnet } from 'telnet-rxjs';
 
 const server = Telnet.server(80);
 
-server.filter((event) => event instanceof Telnet.Event.Started)
-  .subscribe((event) => {
-    console.log('Server has been started.');
-  });
-
 server.filter((event) => event instanceof Telnet.Event.Connected)
   .subscribe((event) => {
     const socket = event.connection.socket;
@@ -66,7 +61,9 @@ server.filter((event) => event instanceof Telnet.Event.Connected)
     event.connection.disconnect();
   });
 
-server.start();
+server.start().then(() => {
+  console.log('Server has been started.');
+});
 ```
 
 ## INSTALLATION
@@ -248,8 +245,13 @@ Additional accessors are provided that act as filters for the `Data` and `Comman
 #### Start
 The `start` method must be called before the server will listen and any clients can connect.  Configuration errors, such as missing port numbers, will cause an exception to be thrown.  Other errors will be reported on the error channel of the server observable.
 
+The method returns a promise that resolves to the [net.Server] to [tls.Server] object that underlies the connection, when the
+`listen` method's callback is invoked.
+
 #### Stop
 The `stop` method will shutdown the server.  First, it will call the `disconnect` method on each connection.  Then, it will close the server port.
+
+The method returns a promise that resolves when the `close` method's callback is invoked.
 
 ## LINKS
 

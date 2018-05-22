@@ -10,7 +10,7 @@ import { Event } from './event';
 import { Protocol } from './protocol';
 
 export class Server extends ReplaySubject<Event.Server> {
-  private server: net.Server | tls.Server;
+  private server: net.Server | tls.Server | undefined;
   private connections: Connection[];
 
   constructor(private options: any = {}) {
@@ -20,48 +20,53 @@ export class Server extends ReplaySubject<Event.Server> {
   }
 
   public start() {
-    const protocol = this.options.hostUrl.protocol;
-    this.next(new Event.Starting());
+    return new Promise<net.Server | tls.Server>((resolve, reject) => {
+      const protocol = this.options.hostUrl.protocol;
+      this.next(new Event.Starting());
 
-    switch (protocol) {
-      case Protocol.TELNET:
-        this.server = this.serverNoTls(this.options.hostUrl);
-        break;
-      case Protocol.TELNETS:
-        this.server = this.serverTls(this.options.hostUrl);
-        break;
-    }
+      switch (protocol) {
+        case Protocol.TELNET:
+          this.server = this.serverNoTls(this.options.hostUrl);
+          break;
+        case Protocol.TELNETS:
+          this.server = this.serverTls(this.options.hostUrl);
+          break;
+      }
 
-    if (!this.server) {
-      throw new Error('No hostUrl protocol has been supplied.');
-    }
+      if (!this.server) {
+        throw new Error('No hostUrl protocol has been supplied.');
+      }
 
-    this.server.on('error', (error: any) => {
-      this.error(error);
+      this.server.on('error', (error: any) => {
+        this.error(error);
+      });
+
+      this.server.listen(Number(this.options.hostUrl.port), this.options.hostUrl.hostname, 5, () => {
+        this.next(new Event.Started());
+        resolve(this.server);
+      });
     });
-
-    this.server.listen(Number(this.options.hostUrl.port), this.options.hostUrl.hostname, 5, () => {
-      this.next(new Event.Started());
-    });
-
-    return this.server;
   }
 
   public stop() {
-    if (!this.server) {
-      return;
-    }
+    return new Promise<void>((resolve, reject) => {
+      if (!this.server) {
+        resolve();
+        return;
+      }
 
-    this.next(new Event.Ending());
+      this.next(new Event.Ending());
 
-    if (this.connections) {
-      this.connections.forEach((connection) => {
-        connection.disconnect();
+      if (this.connections) {
+        this.connections.forEach((connection) => {
+          connection.disconnect();
+        });
+      }
+
+      this.server.close(() => {
+        resolve();
+        this.next(new Event.Ended());
       });
-    }
-
-    this.server.close(() => {
-      this.next(new Event.Ended());
     });
   }
 
