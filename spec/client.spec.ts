@@ -2,8 +2,8 @@
 
 import { createClient, Telnet } from '../src/telnet';
 
-import sinon = require('sinon');
 import chai = require('chai');
+import sinon = require('sinon');
 import sinonChai = require('sinon-chai');
 
 const expect = chai.expect;
@@ -13,7 +13,7 @@ before(() => {
 });
 
 beforeEach(() => {
-    this.sandbox = sinon.sandbox.create();
+    this.sandbox = sinon.createSandbox();
 });
 
 afterEach(() => {

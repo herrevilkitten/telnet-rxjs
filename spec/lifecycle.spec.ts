@@ -1,5 +1,5 @@
-import sinon = require('sinon');
 import chai = require('chai');
+import sinon = require('sinon');
 import sinonChai = require('sinon-chai');
 
 before(() => {
@@ -7,7 +7,7 @@ before(() => {
 });
 
 beforeEach(() => {
-    this.sandbox = sinon.sandbox.create();
+    this.sandbox = sinon.createSandbox();
 });
 
 afterEach(() => {
