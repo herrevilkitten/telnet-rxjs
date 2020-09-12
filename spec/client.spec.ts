@@ -7,17 +7,18 @@ import sinon = require('sinon');
 import sinonChai = require('sinon-chai');
 
 const expect = chai.expect;
+let sandbox: sinon.SinonSandbox;
 
 before(() => {
     chai.use(sinonChai);
 });
 
 beforeEach(() => {
-    this.sandbox = sinon.createSandbox();
+    sandbox = sinon.createSandbox();
 });
 
 afterEach(() => {
-    this.sandbox.restore();
+    sandbox.restore();
 });
 
 describe('Telnet.client', () => {
