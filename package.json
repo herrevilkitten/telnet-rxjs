@@ -53,7 +53,7 @@
     "typescript": "^3.9.7"
   },
   "dependencies": {
-    "rxjs": "6.6.3",
-    "rxjs-compat": "6.6.3"
+    "rxjs": "^7.4.0",
+    "rxjs-compat": "^6.6.7"
   }
 }
