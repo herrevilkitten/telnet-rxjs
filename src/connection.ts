@@ -24,7 +24,7 @@ export class Connection extends ReplaySubject<Event> {
         if (options.socket) {
             this.PrivateSocket = options.socket;
         } else {
-            this.PrivateSocket = new net.Socket();
+            this.PrivateSocket = new net.Socket({ readable: false, writable: false });
         }
 
         if (this.PrivateSocket.writable || this.PrivateSocket.readable) {
